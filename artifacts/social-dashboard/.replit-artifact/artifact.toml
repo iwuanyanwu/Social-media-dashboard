@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Social Media Dashboard"
+version = "1.0.0"
+id = "artifacts/social-dashboard"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18458
+
+[services.development]
+run = "pnpm --filter @workspace/social-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/social-dashboard", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/social-dashboard/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18458"
+BASE_PATH = "/"

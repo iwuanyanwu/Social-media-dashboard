@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Social Media Automation API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: posts
+    description: Social media post scheduling
+  - name: platforms
+    description: Platform connection management
+  - name: analytics
+    description: Analytics and performance data
 paths:
   /healthz:
     get:
@@ -24,6 +30,285 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /posts:
+    get:
+      operationId: listPosts
+      tags: [posts]
+      summary: List all posts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, scheduled, published, failed]
+        - name: platform
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+    post:
+      operationId: createPost
+      tags: [posts]
+      summary: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/calendar:
+    get:
+      operationId: getCalendarPosts
+      tags: [posts]
+      summary: Get posts for calendar view
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Posts for the given month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /posts/{id}:
+    get:
+      operationId: getPost
+      tags: [posts]
+      summary: Get a single post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePost
+      tags: [posts]
+      summary: Update a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostUpdate"
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+    delete:
+      operationId: deletePost
+      tags: [posts]
+      summary: Delete a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /posts/{id}/publish:
+    post:
+      operationId: publishPost
+      tags: [posts]
+      summary: Publish a post immediately
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Published post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /platforms:
+    get:
+      operationId: listPlatforms
+      tags: [platforms]
+      summary: List all platform connections
+      responses:
+        "200":
+          description: Platforms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Platform"
+
+  /platforms/{name}/connect:
+    post:
+      operationId: connectPlatform
+      tags: [platforms]
+      summary: Connect a social media platform
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [facebook, linkedin, twitter, instagram]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformConnectInput"
+      responses:
+        "200":
+          description: Connected platform
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Platform"
+
+  /platforms/{name}/disconnect:
+    delete:
+      operationId: disconnectPlatform
+      tags: [platforms]
+      summary: Disconnect a platform
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [facebook, linkedin, twitter, instagram]
+      responses:
+        "200":
+          description: Disconnected platform
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Platform"
+
+  /analytics:
+    get:
+      operationId: listAnalytics
+      tags: [analytics]
+      summary: Get analytics for posts
+      parameters:
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Analytics"
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Get summary stats across all platforms
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /analytics/platform-breakdown:
+    get:
+      operationId: getPlatformBreakdown
+      tags: [analytics]
+      summary: Get engagement breakdown per platform
+      responses:
+        "200":
+          description: Per-platform engagement breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformEngagement"
+
+  /posts/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [posts]
+      summary: Get recent post activity feed
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +319,167 @@ components:
       required:
         - status
 
+    Post:
+      type: object
+      required: [id, content, platforms, status, createdAt]
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        mediaUrl:
+          type: ["string", "null"]
+        platforms:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, scheduled, published, failed]
+        scheduledAt:
+          type: ["string", "null"]
+          format: date-time
+        publishedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        errorMessage:
+          type: ["string", "null"]
+
+    PostInput:
+      type: object
+      required: [content, platforms]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        mediaUrl:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        scheduledAt:
+          type: string
+          format: date-time
+
+    PostUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+        mediaUrl:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, scheduled]
+        scheduledAt:
+          type: string
+          format: date-time
+
+    Platform:
+      type: object
+      required: [name, connected, displayName]
+      properties:
+        name:
+          type: string
+          enum: [facebook, linkedin, twitter, instagram]
+        displayName:
+          type: string
+        connected:
+          type: boolean
+        accountName:
+          type: ["string", "null"]
+        connectedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    PlatformConnectInput:
+      type: object
+      required: [accessToken]
+      properties:
+        accessToken:
+          type: string
+        accountName:
+          type: string
+
+    Analytics:
+      type: object
+      required: [id, postId, platform, likes, comments, shares, reach, impressions, recordedAt]
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        platform:
+          type: string
+        likes:
+          type: integer
+        comments:
+          type: integer
+        shares:
+          type: integer
+        reach:
+          type: integer
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        recordedAt:
+          type: string
+          format: date-time
+
+    AnalyticsSummary:
+      type: object
+      required: [totalPosts, totalPublished, totalScheduled, totalDrafts, totalLikes, totalComments, totalShares, totalReach, totalImpressions]
+      properties:
+        totalPosts:
+          type: integer
+        totalPublished:
+          type: integer
+        totalScheduled:
+          type: integer
+        totalDrafts:
+          type: integer
+        totalLikes:
+          type: integer
+        totalComments:
+          type: integer
+        totalShares:
+          type: integer
+        totalReach:
+          type: integer
+        totalImpressions:
+          type: integer
+        postsThisWeek:
+          type: integer
+        engagementRate:
+          type: number
+
+    PlatformEngagement:
+      type: object
+      required: [platform, likes, comments, shares, reach, posts]
+      properties:
+        platform:
+          type: string
+        likes:
+          type: integer
+        comments:
+          type: integer
+        shares:
+          type: integer
+        reach:
+          type: integer
+        posts:
+          type: integer
