@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isLoadingSummary } = useGetAnalyticsSummary();
-  const { data: platforms, isLoading: isLoadingPlatforms } = useListPlatforms();
-  const { data: recentActivity, isLoading: isLoadingActivity } = useGetRecentActivity();
+  const { data: platforms = [], isLoading: isLoadingPlatforms } = useListPlatforms();
+  const { data: recentActivity = [], isLoading: isLoadingActivity } = useGetRecentActivity();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -79,18 +79,18 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-6">
-                {recentActivity?.map((post) => (
+              {(Array.isArray(recentActivity) ? recentActivity : []).map((post) => (
                   <div key={post.id} className="flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                      {post.platforms.map((p) => {
-                        const Icon = PLATFORM_ICONS[p as keyof typeof PLATFORM_ICONS];
+                         {(Array.isArray(post.platforms) ? post.platforms : []).map((p) => {
+                           Icon = PLATFORM_ICONS[p as keyof typeof PLATFORM_ICONS];
                         return Icon ? <Icon key={p} className="w-4 h-4" /> : null;
                       })}
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium line-clamp-1">{post.content}</p>
-                        <Badge variant="outline" className={STATUS_COLORS[post.status]}>
+                        <Badge variant="outline" className={STATUS_COLORS[post.status as keyof typeof STATUS_COLORS]}>
                           {post.status}
                         </Badge>
                       </div>
@@ -119,10 +119,10 @@ export default function Dashboard() {
                     <Skeleton className="h-4 w-24" />
                   </div>
                 ))}
-              </div>
-            ) : (
-              platforms?.map((platform) => {
-                const Icon = PLATFORM_ICONS[platform.name];
+                </div>
+                 ) : (
+                  (Array.isArray(platforms) ? platforms : []).map((platform) => {
+                        const Icon = PLATFORM_ICONS[platform.name as keyof typeof PLATFORM_ICONS];
                 return (
                   <div key={platform.name} className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
                     <div className="flex items-center gap-3">

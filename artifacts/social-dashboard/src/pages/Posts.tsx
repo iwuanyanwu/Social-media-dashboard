@@ -14,10 +14,10 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function Posts() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
-  const { data: posts, isLoading } = useListPosts(
+  const { data: rawPosts, isLoading } = useListPosts(
     statusFilter !== "all" ? { status: statusFilter as any } : {}
   );
-
+const posts = Array.isArray(rawPosts) ? rawPosts : [];
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const deletePost = useDeletePost();

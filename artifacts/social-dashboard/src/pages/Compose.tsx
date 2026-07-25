@@ -24,7 +24,7 @@ export default function Compose() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
 
-  const connectedPlatforms = platforms?.filter(p => p.connected) || [];
+  const connectedPlatforms = (Array.isArray(platforms) ? platforms : []).filter((p) => p.connected)
 
   const handleTogglePlatform = (name: string) => {
     setSelectedPlatforms(prev => 
